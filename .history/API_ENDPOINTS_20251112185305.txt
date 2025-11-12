@@ -1,0 +1,147 @@
+
+
+##  Authentication & Profile 
+
+POST    /api/register           تسجيل مستخدم جديد
+POST    /api/login             تسجيل الدخول للحصول على رمز المصادقة
+POST    /api/logout            تسجيل الخروج
+POST    /api/profile/photo     رفع صورة الملف الشخصي
+
+---
+
+##  Events Management 
+
+### Public Event Routes 
+GET     /api/events            عرض جميع الفعاليات المتاحة للجمهور
+GET     /api/events/{id}       عرض تفاصيل فعالية معينة
+
+### Organizer Only Routes (للمنظمين فقط)
+POST    /api/events            إنشاء فعالية جديدة (role: event_organizer)
+PUT     /api/events/{id}       تحديث فعالية موجودة (role: event_organizer)
+DELETE  /api/events/{id}       حذف فعالية (role: event_organizer)
+
+---
+
+##  Submissions Management 
+
+### For Authors & Committee 
+GET     /api/submissions/my    عرض مقترحات المستخدم الحالي
+POST    /api/submissions       إنشاء مقترح جديد (رفع PDF + بيانات)
+GET     /api/submissions/{id}  عرض تفاصيل مقترح معين
+PUT     /api/submissions/{id}  تحديث مقترح موجود (للمؤلف فقط، في حالة pending)
+DELETE  /api/submissions/{id}  حذف مقترح (للمؤلف فقط، في حالة pending)
+
+### For Organizers & Scientific Committee (للمنظمين واللجنة العلمية)
+GET     /api/submissions       عرض جميع المقترحات مع إمكانية الفلترة
+POST    /api/submissions/{id}/status  تحديث حالة المقترح (قبول/رفض/مراجعة)
+
+---
+
+
+
+### Event Creation (إنشاء فعالية)
+```
+title: مطلوب - عنوان الفعالية
+description: مطلوب - وصف الفعالية  
+start_date: مطلوب - تاريخ البداية (بعد اليوم)
+end_date: مطلوب - تاريخ النهاية (بعد تاريخ البداية)
+location: مطلوب - مكان الفعالية
+theme: مطلوب - موضوع الفعالية
+type: مطلوب - نوع الفعالية (congress, seminar, workshop, conference)
+contact_email: مطلوب - بريد التواصل
+contact_phone: اختياري - رقم الهاتف
+scientific_committee: اختياري - أعضاء اللجنة العلمية (JSON)
+invited_speakers: اختياري - المحاضرون المدعوون (JSON)
+```
+
+### Submission Creation (إنشاء مقترح)
+```
+event_id: مطلوب - معرف الفعالية
+title: مطلوب - عنوان المقترح
+authors: مطلوب - قائمة المؤلفين (array)
+abstract: مطلوب - الملخص (أكثر من 100 حرف)
+keywords: مطلوب - الكلمات المفتاحية (3 كلمات على الأقل)
+type: مطلوب - نوع العرض (oral, poster, affiche)
+pdf_file: اختياري - ملف PDF (أقل من 5 ميجابايت)
+```
+
+### Submissions Filtering (فلترة المقترحات)
+```
+event_id: فلترة حسب الفعالية
+status: فلترة حسب الحالة (pending, accepted, rejected, revision)
+```
+
+### Status Update (تحديث الحالة)
+```
+status: مطلوب - الحالة الجديدة (pending, accepted, rejected, revision)
+admin_notes: اختياري - ملاحظات إدارية
+```
+
+---
+
+##  Authentication Requirements 
+
+### Middleware Groups 
+```
+auth:sanctum - يتطلب تسجيل دخول صحيح
+role:event_organizer - يتطلب دور منظم الفعاليات
+role:author - يتطلب دور المؤلف
+role:scientific_committee - يتطلب دور عضو اللجنة العلمية
+role:author,scientific_committee,event_organizer - يقبل أي من هذه الأدوار
+role:event_organizer,scientific_committee - يقبل المنظمين أو اللجنة العلمية
+```
+
+### Headers Required 
+```
+Authorization: Bearer {your_token}
+Content-Type: application/json
+Accept: application/json
+```
+
+---
+
+##  File Upload Endpoints (رفع الملفات)
+
+POST    /api/profile/photo     رفع صورة شخصية (JPG, PNG - أقل من 2MB)
+POST    /api/submissions       رفع PDF مع المقترح (PDF فقط - أقل من 5MB)
+
+---
+
+##  Response Format 
+
+### Success Response 
+```json
+{
+    "success": true,
+    "message": "رسالة النجاح",
+    "data": { }
+}
+```
+
+### Error Response
+```json
+{
+    "success": false,
+    "message": "رسالة الخطأ",
+    "errors": { }
+}
+```
+
+---
+
+
+
+## Frontend Implementation Notes 
+
+### Role-based Navigation (التنقل حسب الدور)
+```
+event_organizer: يصل لجميع إدارة الفعاليات + المقترحات
+author: يصل للمقترحات الخاصة به + التقديم لفعاليات
+scientific_committee: يصل لتقييم المقترحات + إدارة اللجنة
+participant: يصل لعرض الفعاليات + التسجيل (قريباً)
+```
+
+### File Handling (التعامل مع الملفات)
+- استخدم FormData للملفات
+- عرض progress bar للرفع
+- التحقق من نوع وحجم الملف قبل الرفع
