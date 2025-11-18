@@ -17,7 +17,7 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
 
-//  check roles
+// Debug route to check roles
 Route::get('/debug/roles', function () {
     return response()->json([
         'all_roles' => \Spatie\Permission\Models\Role::all()->pluck('name'),

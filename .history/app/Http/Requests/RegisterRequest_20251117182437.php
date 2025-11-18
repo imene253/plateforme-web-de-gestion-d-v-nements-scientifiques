@@ -22,7 +22,7 @@ class RegisterRequest extends FormRequest
                 'required',
                 Rule::in([
                     'super_admin',       
-                    'event_organizer',   
+                    'event_organizer',    // Added this
                     'participant',
                     'author',
                     'scientific_committee',

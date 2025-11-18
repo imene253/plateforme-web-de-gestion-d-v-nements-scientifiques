@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\SubmissionController;
-use App\Http\Controllers\Api\EvaluationController; // Add this import
+use App\Http\Controllers\Api\EvaluationController; // Added missing import
 use Spatie\Permission\Models\Role;
 
 // Public routes
@@ -17,7 +17,7 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
 
-//  check roles
+// Debug route to check roles
 Route::get('/debug/roles', function () {
     return response()->json([
         'all_roles' => \Spatie\Permission\Models\Role::all()->pluck('name'),
@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/events/{id}', [EventController::class, 'destroy']);
     });
     
-    // Submissions - (author, scientific_committee, event_organizer)
+    // Submissions -  (author)
     Route::middleware('role:author,scientific_committee,event_organizer')->group(function () {
         Route::get('/submissions/my', [SubmissionController::class, 'mySubmissions']);
         Route::post('/submissions', [SubmissionController::class, 'store']);
@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/submissions/{id}', [SubmissionController::class, 'destroy']);
     });
     
-    // Submissions - Management (organizer & scientific_committee)
+    // Submissions - إدارة (organizer & scientific_committee)
     Route::middleware('role:event_organizer,scientific_committee')->group(function () {
         Route::get('/submissions', [SubmissionController::class, 'index']);
         Route::post('/submissions/{id}/status', [SubmissionController::class, 'updateStatus']);
@@ -62,7 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/evaluations/{id}', [EvaluationController::class, 'update']);
     });
 
-    // Evaluations - Organizer (Assignment & Management)
+    // Evaluations - Organizer (التخصيص والإدارة)
     Route::middleware('role:event_organizer')->group(function () {
         Route::post('/evaluations/assign', [EvaluationController::class, 'assignEvaluator']);
         Route::delete('/evaluations/{id}', [EvaluationController::class, 'destroy']);

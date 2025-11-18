@@ -60,7 +60,7 @@ class Submission extends Model
         return $evaluation->total_score;
     });
     
-    // Average Score = round( (sum of all total_scores) / (number of evaluations × 3), 2 )
+    Average Score = round( (sum of all total_scores) / (number of evaluations × 3), 2 )
 
     return round($totalScore / ($completedEvaluations->count() * 3), 2);
   }

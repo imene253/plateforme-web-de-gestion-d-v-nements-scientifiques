@@ -41,11 +41,11 @@ class Submission extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
-   // each submission has many evaluations
+   
     public function evaluations()
   {
     return $this->hasMany(Evaluation::class);
-  }
+}
  
    // Get average evaluation score
      public function getAverageEvaluationScoreAttribute()
@@ -60,8 +60,6 @@ class Submission extends Model
         return $evaluation->total_score;
     });
     
-    // Average Score = round( (sum of all total_scores) / (number of evaluations × 3), 2 )
-
     return round($totalScore / ($completedEvaluations->count() * 3), 2);
   }
 }
