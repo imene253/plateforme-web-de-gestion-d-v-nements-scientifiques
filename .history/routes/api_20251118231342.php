@@ -6,8 +6,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\SubmissionController;
-use App\Http\Controllers\Api\EvaluationController;
-use App\Http\Controllers\Api\RegistrationController; // ← Add this missing import
+use App\Http\Controllers\Api\EvaluationController; // Add this import
 use Spatie\Permission\Models\Role;
 
 // Public routes
@@ -18,7 +17,7 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
 
-// Debug route to check roles
+//  check roles
 Route::get('/debug/roles', function () {
     return response()->json([
         'all_roles' => \Spatie\Permission\Models\Role::all()->pluck('name'),
@@ -74,17 +73,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/submissions/{submissionId}/evaluations', [EvaluationController::class, 'getSubmissionEvaluations']);
     });
 
-    // Registration routes
-    Route::post('/registrations', [RegistrationController::class, 'register']);
-    Route::get('/registrations/my', [RegistrationController::class, 'myRegistrations']);
-    Route::delete('/registrations/{id}', [RegistrationController::class, 'cancelRegistration']);
-    Route::get('/registrations/{id}/badge', [RegistrationController::class, 'getBadgeData']);
     
-    // Registration management routes (organizer only)
-    Route::middleware('role:event_organizer,super_admin')->group(function () {
-        Route::get('/events/{eventId}/registrations', [RegistrationController::class, 'eventRegistrations']);
-        Route::put('/registrations/{id}/payment-status', [RegistrationController::class, 'updatePaymentStatus']);
-    });
+    
+
     
     // Test routes
     Route::get('/test-organizer', function () {
