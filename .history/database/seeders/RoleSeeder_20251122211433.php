@@ -19,7 +19,7 @@ class RoleSeeder extends Seeder
             'guest_speaker',
             'workshop_facilitator',
         ];
-        // create roles in database
+        // إنشاء الأدوار في قاعدة البيانات
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }

@@ -104,20 +104,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/evaluations', [SuperAdminController::class, 'getAllEvaluations']);
     });
     
-    // Test routes
-    Route::get('/test-organizer', function () {
-        return response()->json([
-            'success' => true,
-            'message' => 'Welcome Event Organizer! You have access.',
-            'your_roles' => auth()->user()->getRoleNames()
-        ]);
-    })->middleware('role:event_organizer');
     
-    Route::get('/test-author', function () {
-        return response()->json([
-            'success' => true,
-            'message' => 'Welcome Author/Scientific Committee!',
-            'your_roles' => auth()->user()->getRoleNames()
-        ]);
-    })->middleware('role:author,scientific_committee');
 });

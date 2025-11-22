@@ -7,8 +7,7 @@ use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\EvaluationController;
-use App\Http\Controllers\Api\SuperAdminController;
-use App\Http\Controllers\Api\RegistrationController;
+use App\Http\Controllers\Api\RegistrationController; // ← Add this missing import
 use Spatie\Permission\Models\Role;
 
 // Public routes
@@ -19,9 +18,15 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
 
+// Debug route to check roles
+Route::get('/debug/roles', function () {
+    return response()->json([
+        'all_roles' => \Spatie\Permission\Models\Role::all()->pluck('name'),
+        'role_count' => \Spatie\Permission\Models\Role::count()
+    ]);
+});
 
-
-
+// Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
     Route::post('/logout', [ApiAuthController::class, 'logout']);
@@ -29,7 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [ApiAuthController::class, 'updateProfile']);
     Route::post('/profile/photo', [ApiAuthController::class, 'uploadPhoto']);
     
-    // Events  (event_organizer only)
+    // Events - Protected (event_organizer only)
     Route::middleware('role:event_organizer')->group(function () {
         Route::post('/events', [EventController::class, 'store']);
         Route::put('/events/{id}', [EventController::class, 'update']);
@@ -81,7 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/registrations/{id}/payment-status', [RegistrationController::class, 'updatePaymentStatus']);
     });
 
-    // Super Admin Routes
     Route::middleware('role:super_admin')->prefix('admin')->group(function () {
         // Dashboard
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
@@ -89,8 +93,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // User Management
         Route::get('/users', [SuperAdminController::class, 'getAllUsers']);
         Route::post('/users/organizer', [SuperAdminController::class, 'createOrganizer']);
+        Route::post('/users/{id}/toggle-status', [SuperAdminController::class, 'toggleUserStatus']);
         Route::put('/users/{id}/role', [SuperAdminController::class, 'updateUserRole']);
-        Route::put('/users/{id}/toggle-status', [SuperAdminController::class, 'toggleUserStatus']);
         Route::delete('/users/{id}', [SuperAdminController::class, 'deleteUser']);
         
         // Event Management
