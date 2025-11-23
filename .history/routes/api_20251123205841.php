@@ -85,8 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:super_admin')->prefix('admin')->group(function () {
 
         Route::get('/organizers/pending', [SuperAdminController::class, 'getPendingOrganizers']);
-        Route::post('/organizers/{id}/approve', [SuperAdminController::class, 'approveOrganizer']);
-        Route::delete('/organizers/{id}/reject', [SuperAdminController::class, 'rejectOrganizer']); // Added this
+    Route::post('/organizers/{id}/approve', [SuperAdminController::class, 'approveOrganizer']);
         // Dashboard
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
         

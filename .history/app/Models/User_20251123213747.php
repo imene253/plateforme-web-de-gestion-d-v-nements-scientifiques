@@ -31,13 +31,13 @@ class User extends Authenticatable
     ];
 
     protected $attributes = [
-        'is_active' => true, 
+        'is_active' => true, // Default should be true for most users
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'is_active' => 'boolean', 
+        'is_active' => 'boolean', // ← Make sure this is here
     ];
 
     public function registrations()

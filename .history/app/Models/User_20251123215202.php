@@ -37,7 +37,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'is_active' => 'boolean', 
+        'is_active' => 'boolean', // ← Make sure this is here
     ];
 
     public function registrations()

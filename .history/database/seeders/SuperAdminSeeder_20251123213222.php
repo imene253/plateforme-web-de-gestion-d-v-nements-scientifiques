@@ -19,7 +19,7 @@ class SuperAdminSeeder extends Seeder
                 'phone' => '+213 555 000 000',
                 'institution' => 'Platform Administration',
                 'country' => 'Algeria',
-                'is_active' => true, 
+                'is_active' => true, // ← Add this line!
                 'email_verified_at' => now(),
             ]
         );

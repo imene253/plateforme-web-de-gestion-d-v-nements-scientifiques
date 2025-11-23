@@ -32,7 +32,7 @@ class ApiAuthController extends Controller
                     'author',
                     'scientific_committee',
                     'guest_speaker',
-                    'workshop_facilitator',
+                    'workshop_facilitator'
                     'event_organizer'
                 ])
             ],
@@ -42,7 +42,7 @@ class ApiAuthController extends Controller
             'biography' => 'nullable|string|max:1000',
             'country' => 'nullable|string|max:100',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -50,10 +50,7 @@ class ApiAuthController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-
-      
-        $isActive = $request->role !== 'event_organizer';
-
+    
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -63,28 +60,12 @@ class ApiAuthController extends Controller
             'research_field' => $request->research_field,
             'biography' => $request->biography,
             'country' => $request->country,
-            'is_active' => $isActive, // false for event_organizer, true for others
         ]);
-
+    
         $user->assignRole($request->role);
-
-        // Different response based on role
-        if ($request->role === 'event_organizer') {
-            return response()->json([
-                'success' => true,
-                'message' => 'Registration submitted successfully. Your account will be reviewed by an administrator and you will be notified once approved.',
-                'data' => [
-                    'user' => $user->only(['id', 'name', 'email', 'is_active']),
-                    'roles' => $user->getRoleNames(),
-                    'status' => 'pending_approval',
-                    'note' => 'You will receive an email once your account is approved.'
-                ]
-            ], 201);
-        }
-
-       
+    
         $token = $user->createToken('auth_token')->plainTextToken;
-
+    
         return response()->json([
             'success' => true,
             'message' => 'User registered successfully',
@@ -109,15 +90,6 @@ class ApiAuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
-
-        if (!$user->is_active) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your account is pending approval by the administrator'
-            ], 403);
-        }
-
-        
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

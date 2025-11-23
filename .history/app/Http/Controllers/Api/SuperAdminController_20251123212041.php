@@ -108,7 +108,7 @@ class SuperAdminController extends Controller
         ->where('is_active', false)
         ->findOrFail($id);
 
-       
+        // Optionally delete the user or keep them inactive
         $organizer->delete();
 
         return response()->json([

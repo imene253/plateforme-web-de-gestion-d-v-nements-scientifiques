@@ -51,7 +51,7 @@ class ApiAuthController extends Controller
             ], 422);
         }
 
-      
+        // Event organizers need approval, others are active by default
         $isActive = $request->role !== 'event_organizer';
 
         $user = User::create([
@@ -82,7 +82,7 @@ class ApiAuthController extends Controller
             ], 201);
         }
 
-       
+        // For other roles, create token and login immediately
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

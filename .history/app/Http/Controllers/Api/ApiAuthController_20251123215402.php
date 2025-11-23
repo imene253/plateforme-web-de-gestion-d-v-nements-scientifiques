@@ -82,7 +82,7 @@ class ApiAuthController extends Controller
             ], 201);
         }
 
-       
+        // For other roles, create token and login immediately
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

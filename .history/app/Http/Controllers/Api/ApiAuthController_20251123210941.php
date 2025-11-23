@@ -41,6 +41,7 @@ class ApiAuthController extends Controller
             'research_field' => 'nullable|string|max:255',
             'biography' => 'nullable|string|max:1000',
             'country' => 'nullable|string|max:100',
+            'is_active' => 'nullable|boolean', // Proper validation rule
         ]);
 
         if ($validator->fails()) {
@@ -51,8 +52,9 @@ class ApiAuthController extends Controller
             ], 422);
         }
 
-      
-        $isActive = $request->role !== 'event_organizer';
+        $isActive = $request->has('is_active') 
+            ? $request->is_active 
+            : ($request->role !== 'event_organizer');
 
         $user = User::create([
             'name' => $request->name,
@@ -63,26 +65,11 @@ class ApiAuthController extends Controller
             'research_field' => $request->research_field,
             'biography' => $request->biography,
             'country' => $request->country,
-            'is_active' => $isActive, // false for event_organizer, true for others
+            'is_active' => $isActive, 
         ]);
 
         $user->assignRole($request->role);
 
-        // Different response based on role
-        if ($request->role === 'event_organizer') {
-            return response()->json([
-                'success' => true,
-                'message' => 'Registration submitted successfully. Your account will be reviewed by an administrator and you will be notified once approved.',
-                'data' => [
-                    'user' => $user->only(['id', 'name', 'email', 'is_active']),
-                    'roles' => $user->getRoleNames(),
-                    'status' => 'pending_approval',
-                    'note' => 'You will receive an email once your account is approved.'
-                ]
-            ], 201);
-        }
-
-       
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
