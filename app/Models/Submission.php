@@ -21,6 +21,11 @@ class Submission extends Model
         'status',
         'admin_notes',
         'submission_deadline',
+        // Added a session id since every Submission->Presentation belongs to a session
+        'session_id',
+        // Added new time fields for the organizer to set
+        'presentation_start_time', 
+        'presentation_end_time',
     ];
     // Casts convert type automatically
     protected $casts = [
@@ -45,6 +50,12 @@ class Submission extends Model
     public function evaluations()
   {
     return $this->hasMany(Evaluation::class);
+  }
+
+  // each submission is belongs to a session
+    public function session()
+  {
+    return $this->belongsTo(Session::class);
   }
  
    // Get average evaluation score

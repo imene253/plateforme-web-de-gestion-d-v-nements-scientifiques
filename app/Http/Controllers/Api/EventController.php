@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Http\Traits\ProgramValidationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 
 class EventController extends Controller
 {
+    use ProgramValidationTrait;
     /**
      * عرض كل الفعاليات (public)
      */
@@ -99,6 +101,11 @@ class EventController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Cannot edit event details once the event has started.
+        if ($response = $this->checkEventStarted($id)) {
+            return $response;
+        }
+
         $event = Event::find($id);
 
         if (!$event) {

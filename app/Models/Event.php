@@ -53,4 +53,18 @@ public function getPaidRegistrationsCountAttribute()
 {
     return $this->registrations()->paid()->count();
 }
+
+// ADDED RELATIONSHIPS FOR MODULE 6
+public function sesions()
+{
+    // Relationship to the sessions table
+    return $this->hasMany(Session::class, 'event_id');
+}
+
+// 💡 REQUIRED CHANGE: Relationship to the new ProgramPeriod table
+public function programPeriods()
+{
+    // Relationship to the new ProgramPeriod table
+    return $this->hasMany(ProgramPeriod::class, 'event_id');
+}
 }

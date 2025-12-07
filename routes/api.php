@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\EvaluationController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\Api\RegistrationController;
+use App\Http\Controllers\Api\SessionController;
+use App\Http\Controllers\Api\ProgramPeriodController;
 use Spatie\Permission\Models\Role;
 
 // Public routes
@@ -18,6 +20,9 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 // Events - Public
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
+
+// Program - Public
+Route::get('events/{eventId}/program', [SessionController::class, 'showProgram']);
 
 
 
@@ -30,14 +35,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/photo', [ApiAuthController::class, 'uploadPhoto']);
     
     // Events  (event_organizer only)
-    Route::middleware('role:event_organizer')->group(function () {
+    Route::middleware('role:event_organizer,super_admin')->group(function () {
         Route::post('/events', [EventController::class, 'store']);
         Route::put('/events/{id}', [EventController::class, 'update']);
         Route::delete('/events/{id}', [EventController::class, 'destroy']);
+        // Sessions (event_organizer only)
+        Route::prefix('events/{eventId}')->group(function () {
+            Route::resource('sessions', SessionController::class)->only([
+                'index', 'store', 'update', 'destroy'
+            ]);
+            
+            // Special route to assign a submission to a session
+            Route::post('sessions/{sessionId}/assign-submission', [SessionController::class, 'assignSubmission']);
+        });
+        // Program Period Management
+        Route::prefix('events/{eventId}')->group(function () {
+        Route::resource('periods', ProgramPeriodController::class)->only([
+            'store', 'update', 'destroy'
+        ]);
+        });
+
+        // route to set the start/end time of an accepted, assigned submission
+        Route::patch('events/{eventId}/sessions/{sessionId}/presentations/{submissionId}/time', 
+        [SessionController::class, 'updatePresentationTime']
+        )->name('presentation.updateTime');
     });
     
     // Submissions - (author, scientific_committee, event_organizer)
-    Route::middleware('role:author,scientific_committee,event_organizer')->group(function () {
+    Route::middleware('role:author,scientific_committee,event_organizer,super_admin')->group(function () {
         Route::get('/submissions/my', [SubmissionController::class, 'mySubmissions']);
         Route::post('/submissions', [SubmissionController::class, 'store']);
         Route::get('/submissions/{id}', [SubmissionController::class, 'show']);
@@ -46,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     // Submissions - Management (organizer & scientific_committee)
-    Route::middleware('role:event_organizer,scientific_committee')->group(function () {
+    Route::middleware('role:event_organizer,scientific_committee,super_admin')->group(function () {
         Route::get('/submissions', [SubmissionController::class, 'index']);
         Route::post('/submissions/{id}/status', [SubmissionController::class, 'updateStatus']);
     });
