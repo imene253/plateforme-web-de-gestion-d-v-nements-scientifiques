@@ -14,13 +14,27 @@ POST    /api/profile/photo     رفع صورة الملف الشخصي
 ### Public Event Routes 
 GET     /api/events            عرض جميع الفعاليات المتاحة للجمهور
 GET     /api/events/{id}       عرض تفاصيل فعالية معينة
+GET     /api/events/{id}/program    عرض جدول فعاليلة معينة
+
 
 ### Organizer Only Routes (للمنظمين فقط)
+
 POST    /api/events            إنشاء فعالية جديدة (role: event_organizer)
 PUT     /api/events/{id}       تحديث فعالية موجودة (role: event_organizer)
 DELETE  /api/events/{id}       حذف فعالية (role: event_organizer)
 
+POST    /api/events/{id}/sessions   انشاء حصة في فعالية معينة (role: event_organizer)
+PUT     /api/events/{id}/sessions/{id}    تحديث حصة معينة في فعالية معينة (role: event_organizer)
+DELETE  /api/events/{id}/sessions/{id}    حذف حصة معينة في فعالية معينة (role: event_organizer)
+
+POST    /api/events/{id}/sessions/{id}/assign-submission    تعيين عرض تقديمي/مقترح إلى حصة (role: event_organizer)
+PATCH   /api/events/{id}/sessions/{id}/presentations/{id}/time     تعيين وقت البدء/النهاية لمقترح مقبول و مخصص (role: event_organizer)
+
+POST    /api/events/{id}/periods   انشاء فترة في فعالية معينة (role: event_organizer)
+PUT     /api/events/{id}/periods/{id}    تحديث فترة معينة في فعالية معينة (role: event_organizer)
+DELETE  /api/events/{id}/periods/{id}    حذف فترة معينة في فعالية معينة (role: event_organizer)
 ---
+
 
 ##  Submissions Management 
 
@@ -64,6 +78,32 @@ keywords: مطلوب - الكلمات المفتاحية (3 كلمات على ا
 type: مطلوب - نوع العرض (oral, poster, affiche)
 pdf_file: اختياري - ملف PDF (أقل من 5 ميجابايت)
 ```
+
+### Session Creation (إنشاء حصة)
+```
+event_id: مطلوب - معرف الفعالية
+title: مطلوب - عنوان الحصة
+room: مطلوب - غرفة الحصة 
+start_time: مطلوب - وقت بداية الحصة (YYYY-MM-DD 00:00:00)
+end_time: مطلوب - وقت نهاية الحصة (YYYY-MM-DD 00:00:00)
+session_chair_id: مطلوب - معرف مسؤول الحصة
+```
+
+### Submission Assignment (تكليف مقترح/عرض تقديمي بحصة)
+```
+submission_id:  مطلوب - معرف الاقتراح
+```
+
+### Period Creation (إنشاء فترة)
+```
+event_id: مطلوب - معرف الحصة
+title: مطلوب - عنوان الفترة
+start_time: مطلوب - وقت بداية الفترة (YYYY-MM-DD 00:00:00)
+end_time: مطلوب - وقت نهاية الفترة (YYYY-MM-DD 00:00:00)
+room: اختياري - غرفة الفترة 
+description: اختياري - شرح الفترة 
+```
+
 
 ### Submissions Filtering (فلترة المقترحات)
 ```
