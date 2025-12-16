@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Session;
 use App\Models\Event;
-use App\Models\ProgramPeriod;
 use App\Http\Traits\ProgramValidationTrait;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
@@ -113,6 +112,11 @@ class SessionController extends Controller
         $validatedData = $validator->validated();
         $startTime = $validatedData['start_time'];
         $endTime = $validatedData['end_time'];
+
+        // Check if the Start/End time is within the event Start/End date
+        if ($response = $this->checkItemAgainstEventDates($eventId, $startTime, $endTime)) {
+            return $response;
+        }
 
         // Check for overlap with existing sessions/periods
         if ($response = $this->checkTimeOverlap($eventId, $startTime, $endTime)) {

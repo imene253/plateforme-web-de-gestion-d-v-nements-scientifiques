@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\ProgramPeriodController;
+use App\Http\Controllers\Api\WorkshopController;
+use App\Http\Controllers\Api\WorkshopMaterialController;
 use Spatie\Permission\Models\Role;
 
 // Public routes
@@ -24,6 +26,9 @@ Route::get('/events/{id}', [EventController::class, 'show']);
 // Program - Public
 Route::get('events/{eventId}/program', [SessionController::class, 'showProgram']);
 
+// Workshops - Public
+Route::get('events/{eventId}/workshops', [WorkshopController::class, 'index']);
+
 
 
 
@@ -33,6 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [ApiAuthController::class, 'me']);
     Route::put('/profile', [ApiAuthController::class, 'updateProfile']);
     Route::post('/profile/photo', [ApiAuthController::class, 'uploadPhoto']);
+    // Workshop Registration
+    Route::post('workshops/{workshopId}/register', [WorkshopController::class, 'register']);
+    Route::delete('workshops/{workshopId}/unregister', [WorkshopController::class, 'unregister']);
     
     // Events  (event_organizer only)
     Route::middleware('role:event_organizer,super_admin')->group(function () {
@@ -59,6 +67,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('events/{eventId}/sessions/{sessionId}/presentations/{submissionId}/time', 
         [SessionController::class, 'updatePresentationTime']
         )->name('presentation.updateTime');
+
+        // routes to manage workshops
+        Route::prefix('events/{eventId}')->group(function () {
+        Route::post('workshops', [WorkshopController::class, 'store']);
+        Route::put('workshops/{workshopId}', [WorkshopController::class, 'update']);
+        Route::delete('workshops/{workshopId}', [WorkshopController::class, 'destroy']);
+        });
     });
     
     // Submissions - (author, scientific_committee, event_organizer)
@@ -92,6 +107,28 @@ Route::middleware('auth:sanctum')->group(function () {
     // Evaluations - View (Author, Organizer, Scientific Committee)
     Route::middleware('role:author,event_organizer,scientific_committee')->group(function () {
         Route::get('/submissions/{submissionId}/evaluations', [EvaluationController::class, 'getSubmissionEvaluations']);
+    });
+
+
+    // Workshops - File Upload (Workshop Facilitator)
+    Route::middleware('role:workshop_facilitator,super_admin')->group(function () {
+    Route::post('workshops/{workshopId}/materials', [WorkshopMaterialController::class, 'store']);
+    Route::delete('workshops/{workshopId}/materials/{materialId}', [WorkshopMaterialController::class, 'destroy']);
+
+    // View all workshop submissions (pending, accepted, declined)
+    Route::get('workshops/{workshopId}/submissions', [WorkshopController::class, 'viewSubmissions']);
+
+    // Accept or decline a specific submission
+    Route::post('workshops/{workshopId}/submissions/{userId}/moderate', [WorkshopController::class, 'moderateRegistration']);
+
+    // View accepted participants
+    Route::get('workshops/{workshopId}/participants', [WorkshopController::class, 'viewAcceptedParticipants']);
+    });
+
+    // Viewing/Downloading Materials (Accessible by Participants and Animator)
+    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('workshops/{workshopId}/materials', [WorkshopMaterialController::class, 'index']);
+    Route::get('workshops/{workshopId}/materials/{materialId}', [WorkshopMaterialController::class, 'show']);
     });
 
     // Registration routes

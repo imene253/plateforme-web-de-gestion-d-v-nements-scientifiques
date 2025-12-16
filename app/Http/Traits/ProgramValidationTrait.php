@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use App\Models\Event;
 use App\Models\Session;
 use App\Models\ProgramPeriod;
+use App\Models\Workshop;
 use Illuminate\Support\Carbon;
 
 trait ProgramValidationTrait
@@ -78,5 +79,96 @@ trait ProgramValidationTrait
         }
 
         return null;
+    }
+
+
+    // this function checks if there is an overlap between Workshops/Sessions/Periods in the same room in the same time.
+    protected function checkRoomAvailability($event_id, $room, $startTime, $endTime, $ignoreId = null, $modelName = null)
+    {
+    // Check against existing Sessions
+    $sessionQuery = Session::where('event_id', $event_id)
+        ->where('room', $room)
+        ->where(function ($q) use ($startTime, $endTime) {
+            $q->whereBetween('start_time', [$startTime, $endTime])
+              ->orWhereBetween('end_time', [$startTime, $endTime])
+              ->orWhere(function ($q2) use ($startTime, $endTime) {
+                  $q2->where('start_time', '<', $startTime)->where('end_time', '>', $endTime);
+              });
+        });
+
+    if ($modelName === 'Session' && $ignoreId) {
+        $sessionQuery->where('id', '!=', $ignoreId);
+    }
+    
+    if ($sessionQuery->exists()) {
+        return response()->json(['message' => "Validation Error: Room '$room' is already occupied by a Session at this time."], 422);
+    }
+
+
+    // Check against existing Program Periods
+    $periodQuery = ProgramPeriod::where('event_id', $event_id)
+        ->where('room', $room)
+        ->where(function ($q) use ($startTime, $endTime) {
+            $q->whereBetween('start_time', [$startTime, $endTime])
+              ->orWhereBetween('end_time', [$startTime, $endTime])
+              ->orWhere(function ($q2) use ($startTime, $endTime) {
+                  $q2->where('start_time', '<', $startTime)->where('end_time', '>', $endTime);
+              });
+        });
+    
+    if ($modelName === 'Period' && $ignoreId) {
+        $periodQuery->where('id', '!=', $ignoreId);
+    }
+    
+    if ($periodQuery->exists()) {
+        return response()->json(['message' => "Validation Error: Room '$room' is already reserved by a Program Period at this time."], 422);
+    }
+
+
+    // Check against existing Workshops 
+    $workshopQuery = Workshop::where('event_id', $event_id)
+        ->where('room', $room)
+        ->where(function ($q) use ($startTime, $endTime) {
+            // Overlap logic (same as above)
+            $q->whereBetween('start_time', [$startTime, $endTime])
+              ->orWhereBetween('end_time', [$startTime, $endTime])
+              ->orWhere(function ($q2) use ($startTime, $endTime) {
+                  $q2->where('start_time', '<', $startTime)->where('end_time', '>', $endTime);
+              });
+        });
+
+    if ($modelName === 'Workshop' && $ignoreId) {
+        $workshopQuery->where('id', '!=', $ignoreId);
+    }
+    
+    if ($workshopQuery->exists()) {
+        return response()->json(['message' => "Validation Error: Room '$room' is already occupied by a Workshop at this time."], 422);
+    }
+
+
+    return null; // = Room is available
+    }
+
+
+    // this function checks if a program item (Session, Period, Workshop) is within the event's start and end dates.
+    protected function checkItemAgainstEventDates($eventId, $startTime, $endTime)
+    {
+        $event = Event::findOrFail($eventId);
+        // startOfDay and endOfDay for inclusive boundary checking
+        $eventStartDate = Carbon::parse($event->start_date)->startOfDay();
+        $eventEndDate = Carbon::parse($event->end_date)->endOfDay();
+
+        $itemStartTime = Carbon::parse($startTime);
+        $itemEndTime = Carbon::parse($endTime);
+
+        // Check if item starts before the event starts OR item ends after the event ends
+        if ($itemStartTime->lt($eventStartDate) || $itemEndTime->gt($eventEndDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The proposed item time slot is outside the event\'s scheduled dates.'
+            ], 422);
+        }
+
+        return null; 
     }
 }

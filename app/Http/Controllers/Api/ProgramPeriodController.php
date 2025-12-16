@@ -57,6 +57,11 @@ class ProgramPeriodController extends Controller
             return $response;
         }
 
+        // Check if the Start/End time is within the event Start/End date
+        if ($response = $this->checkItemAgainstEventDates($eventId, $validatedData['start_time'], $validatedData['end_time'])) {
+            return $response;
+        }
+
         $period = ProgramPeriod::create(array_merge($validatedData, [
             'event_id' => $eventId
         ]));

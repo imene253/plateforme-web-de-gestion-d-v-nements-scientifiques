@@ -26,8 +26,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('submissions', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('session_id');
+            if (Schema::hasColumn('submissions', 'session_id')) {
             $table->dropColumn('session_id');
+            }
         });
     }
 };
