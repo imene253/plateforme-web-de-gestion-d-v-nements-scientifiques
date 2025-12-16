@@ -15,6 +15,7 @@ POST    /api/profile/photo     رفع صورة الملف الشخصي
 GET     /api/events            عرض جميع الفعاليات المتاحة للجمهور
 GET     /api/events/{id}       عرض تفاصيل فعالية معينة
 GET     /api/events/{id}/program    عرض جدول فعاليلة معينة
+GET     /api/events/{id}/workshops   عرض جدول ورشة معينة
 
 
 ### Organizer Only Routes (للمنظمين فقط)
@@ -33,6 +34,10 @@ PATCH   /api/events/{id}/sessions/{id}/presentations/{id}/time     تعيين و
 POST    /api/events/{id}/periods   انشاء فترة في فعالية معينة (role: event_organizer)
 PUT     /api/events/{id}/periods/{id}    تحديث فترة معينة في فعالية معينة (role: event_organizer)
 DELETE  /api/events/{id}/periods/{id}    حذف فترة معينة في فعالية معينة (role: event_organizer)
+
+POST    /api/events/{id}/workshops   انشاء ورشة في فعالية معينة (role: event_organizer)
+PUT     /api/events/{id}/workshops/{id}    تحديث ورشة معينة في فعالية معينة (role: event_organizer)
+DELETE  /api/events/{id}/workshops/{id}    حذف ورشة معينة في فعالية معينة (role: event_organizer)
 ---
 
 
@@ -51,6 +56,23 @@ POST    /api/submissions/{id}/status  تحديث حالة المقترح (قبو
 
 ---
 
+##  Workshops Management
+
+### For Workshop Facilitator (role: workshop_facilitator)
+GET    /api/workshops/{id}/submissions    عرض تسجيلات ورشة معينة
+POST   /api/workshops/{id}/submissions/{id}/moderate     قبول او رفض تسجيل معين في ورشة معينة
+GET    /api/workshops/{id}/participants    عرض المستخدمين المقبولين في ورشة معينة
+POST   /api/workshops/{id}/materials     رفع موارد لورشة معينة
+DELETE /api/workshops/{id}/materials/{id}    حذف موارد معينة من ورشة معينة
+
+### For Workshop Facilitators and registered Participants  (role: workshop_facilitator , participant)
+GET    /api/workshops/{id}/materials     عرض كل الموارد لورشة معينة
+GET    /api/workshops/{id}/materials     عرض/تحميل موارد معينة لورشة معينة
+
+### For Participants
+POST   /api/workshops/{id}/register    التسجيل في ورشة معينة
+DELETE /api/workshops/{id}/unregister    الغاء التسجيل من ورشة معينة / حذف مسؤول ورشة معينة لمستخدم معين
+---
 
 
 ### Event Creation (إنشاء فعالية)
@@ -89,6 +111,17 @@ end_time: مطلوب - وقت نهاية الحصة (YYYY-MM-DD 00:00:00)
 session_chair_id: مطلوب - معرف مسؤول الحصة
 ```
 
+### Workshop Creation (إنشاء ورشة)
+```
+event_id: مطلوب - معرف الفعالية
+title: مطلوب - عنوان الورشة
+room: مطلوب - غرفة الورشة 
+start_time: مطلوب - وقت بداية الورشة (YYYY-MM-DD 00:00:00)
+end_time: مطلوب - وقت نهاية الورشة (YYYY-MM-DD 00:00:00)
+animator_id: مطلوب - معرف مسؤول الورشة
+description: اختياري - تعريف الورشة 
+```
+
 ### Submission Assignment (تكليف مقترح/عرض تقديمي بحصة)
 ```
 submission_id:  مطلوب - معرف الاقتراح
@@ -117,6 +150,25 @@ status: مطلوب - الحالة الجديدة (pending, accepted, rejected, r
 admin_notes: اختياري - ملاحظات إدارية
 ```
 
+---
+
+### Workshop Registration
+```
+user_id:
+workshop_id:
+status: // 'pending', 'accepted', 'declined'
+reason_for_interest: 
+---
+
+### Workshop Materials
+```
+workshop_id:
+title:
+description:
+type:
+file_path:
+external_url:
+is_public:
 ---
 
 ##  Authentication Requirements 
