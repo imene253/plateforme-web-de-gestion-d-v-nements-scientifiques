@@ -16,6 +16,13 @@ GET     /api/events            عرض جميع الفعاليات المتاحة
 GET     /api/events/{id}       عرض تفاصيل فعالية معينة
 GET     /api/events/{id}/program    عرض جدول فعاليلة معينة
 GET     /api/events/{id}/workshops   عرض جدول ورشة معينة
+POST    /api/sessions/{id}/questions    ask a question
+DELETE  /api/questions/{id}    delete a question (role: event_organizer can delete any question)
+GET     /api/sessions/{id}/questions    show all questions and their corresponding answers
+POST    /api/questions/{id}/upvote      upvote a question, if called again the upvote is toggled (like/unlike)
+POST    /api/questions/{id}/answers      answer a qustion
+DELETE  /api/answers/{id}    delete an answer (role: event_organizer can delete any answer)
+POST    /api/sessions/{id}/survey    answer a survey
 
 
 ### Organizer Only Routes (للمنظمين فقط)
@@ -38,6 +45,8 @@ DELETE  /api/events/{id}/periods/{id}    حذف فترة معينة في فعا�
 POST    /api/events/{id}/workshops   انشاء ورشة في فعالية معينة (role: event_organizer)
 PUT     /api/events/{id}/workshops/{id}    تحديث ورشة معينة في فعالية معينة (role: event_organizer)
 DELETE  /api/events/{id}/workshops/{id}    حذف ورشة معينة في فعالية معينة (role: event_organizer)
+
+GET     /api/sessions/1/survey-results     get the results of a survey after it ends(3 minutes after the session ends) (role: event_organizer)
 ---
 
 
