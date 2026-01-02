@@ -44,4 +44,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(Registration::class);
     }
+
+
+protected $appends = ['role_name', 'full_profile_photo'];
+
+// 2. These MUST be public
+public function getRoleNameAttribute()
+{
+    return $this->getRoleNames()->first() ?? 'Participant';
+}
+
+public function getFullProfilePhotoAttribute()
+{
+    return $this->profile_photo ? asset('storage/' . $this->profile_photo) : null;
+}
 }

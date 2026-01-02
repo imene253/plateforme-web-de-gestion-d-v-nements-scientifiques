@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\ProgramPeriodController;
 use App\Http\Controllers\Api\WorkshopController;
 use App\Http\Controllers\Api\WorkshopMaterialController;
+use App\Http\Controllers\Api\SessionQuestionController;
+use App\Http\Controllers\Api\SessionSurveyController;
 use Spatie\Permission\Models\Role;
 
 // Public routes
@@ -41,6 +43,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // Workshop Registration
     Route::post('workshops/{workshopId}/register', [WorkshopController::class, 'register']);
     Route::delete('workshops/{workshopId}/unregister', [WorkshopController::class, 'unregister']);
+    // Questions / Aneswers
+    Route::prefix('sessions/{sessionId}')->group(function () {
+        // View questions (sorted by upvotes)
+        Route::get('questions', [SessionQuestionController::class, 'index']);
+        // Ask a new question
+        Route::post('questions', [SessionQuestionController::class, 'store']);
+    });
+    // Toggle An upvote (like/unlike)
+    Route::post('questions/{questionId}/upvote', [SessionQuestionController::class, 'toggleUpvote']);
+    // Answer a question
+    Route::post('questions/{questionId}/answers', [SessionQuestionController::class, 'storeAnswer']);
+    // Answer and submit surveys
+    Route::post('sessions/{sessionId}/survey', [SessionSurveyController::class, 'store']);
+    // Delete question or answer (own only)
+    Route::delete('/questions/{id}', [SessionQuestionController::class, 'destroyQuestion']);
+    Route::delete('/answers/{id}', [SessionQuestionController::class, 'destroyAnswer']);
     
     // Events  (event_organizer only)
     Route::middleware('role:event_organizer,super_admin')->group(function () {
@@ -74,6 +92,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('workshops/{workshopId}', [WorkshopController::class, 'update']);
         Route::delete('workshops/{workshopId}', [WorkshopController::class, 'destroy']);
         });
+
+        // View Survey Results
+        Route::get('sessions/{sessionId}/survey-results', [SessionSurveyController::class, 'getResults']);
     });
     
     // Submissions - (author, scientific_committee, event_organizer)
