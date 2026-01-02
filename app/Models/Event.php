@@ -67,4 +67,9 @@ public function programPeriods()
     // Relationship to the new ProgramPeriod table
     return $this->hasMany(ProgramPeriod::class, 'event_id');
 }
+public function committeeMembers()
+{
+    return $this->belongsToMany(User::class, 'event_scientific_committee', 'event_id', 'user_id')
+                ->withTimestamps();
+}
 }

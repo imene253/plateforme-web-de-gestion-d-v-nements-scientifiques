@@ -65,6 +65,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/events', [EventController::class, 'store']);
         Route::put('/events/{id}', [EventController::class, 'update']);
         Route::delete('/events/{id}', [EventController::class, 'destroy']);
+        Route::post('/events/{eventId}/assign-committee', 
+            [EventController::class, 'assignCommitteeToEvent']);
+        Route::get('/events/{eventId}/committee', 
+            [EventController::class, 'getEventCommittee']);
+        Route::delete('/events/{eventId}/committee/{userId}', 
+            [EventController::class, 'removeCommitteeFromEvent']);
         // Sessions (event_organizer only)
         Route::prefix('events/{eventId}')->group(function () {
             Route::resource('sessions', SessionController::class)->only([
@@ -121,6 +127,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Evaluations - Organizer (Assignment & Management)
     Route::middleware('role:event_organizer')->group(function () {
+        Route::get('/events/{eventId}/scientific-committee', [EvaluationController::class, 'getEventScientificCommittee']);
         Route::post('/evaluations/assign', [EvaluationController::class, 'assignEvaluator']);
         Route::delete('/evaluations/{id}', [EvaluationController::class, 'destroy']);
     });

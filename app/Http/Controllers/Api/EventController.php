@@ -27,6 +27,98 @@ class EventController extends Controller
         ]);
     }
 
+    public function assignCommitteeToEvent(Request $request, $eventId)
+{
+    $validator = Validator::make($request->all(), [
+        'user_id' => 'required|exists:users,id'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 400);
+    }
+
+    $event = Event::find($eventId);
+    
+    if (!$event) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Event not found'
+        ], 404);
+    }
+
+    $user = User::find($request->user_id);
+    
+    if (!$user->hasRole('scientific_committee')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'User is not a scientific committee member'
+        ], 400);
+    }
+
+
+    if ($event->committeeMembers()->where('user_id', $request->user_id)->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'This user is already assigned to this event'
+        ], 409);
+    }
+
+  
+    $event->committeeMembers()->attach($request->user_id);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Committee member assigned successfully',
+        'data' => $user->only(['id', 'name', 'email', 'institution', 'research_domain'])
+    ], 201);
+}
+
+
+public function getEventCommittee($eventId)
+{
+    $event = Event::find($eventId);
+    
+    if (!$event) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Event not found'
+        ], 404);
+    }
+
+    $committeeMembers = $event->committeeMembers()
+        ->select('users.id', 'users.name', 'users.email', 'users.institution', 'users.research_domain', 'users.photo_path')
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $committeeMembers
+    ]);
+}
+
+
+public function removeCommitteeFromEvent($eventId, $userId)
+{
+    $event = Event::find($eventId);
+    
+    if (!$event) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Event not found'
+        ], 404);
+    }
+
+    $event->committeeMembers()->detach($userId);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Committee member removed successfully'
+    ]);
+}
+
     /**
      * إنشاء فعالية جديدة (event_organizer only)
      */

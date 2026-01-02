@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Evaluation;
 use App\Models\Submission;
 use App\Models\User;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -245,4 +246,32 @@ class EvaluationController extends Controller
             'message' => 'Evaluation deleted successfully'
         ]);
     }
+
+    public function getEventScientificCommittee($eventId)
+    {
+              $event = Event::find($eventId);
+        
+        if (!$event) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Event not found'
+            ], 404);
+        }
+        
+        
+        $committeeMembers = User::whereHas('roles', function($query) {
+            $query->where('name', 'scientific_committee');
+        })
+        ->where('is_active', true)
+        ->select('id', 'name', 'email', 'institution', 'research_domain', 'photo_path')
+        ->orderBy('name')
+        ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $committeeMembers
+        ]);
+    }
 }
+
+    
