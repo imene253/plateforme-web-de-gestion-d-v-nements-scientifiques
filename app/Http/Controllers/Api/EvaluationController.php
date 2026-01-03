@@ -85,56 +85,75 @@ class EvaluationController extends Controller
      * Evaluate a submission
      */
     public function evaluateSubmission(Request $request, $submissionId)
-    {
-        $validator = Validator::make($request->all(), [
-            'relevance_score' => 'required|integer|min:1|max:10',
-            'scientific_quality_score' => 'required|integer|min:1|max:10',
-            'originality_score' => 'required|integer|min:1|max:10',
-            'comments' => 'required|string',
-            'recommendation' => 'required|in:accept,reject,revision',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'relevance_score' => 'required|integer|min:1|max:10',
+        'scientific_quality_score' => 'required|integer|min:1|max:10',
+        'originality_score' => 'required|integer|min:1|max:10',
+        'comments' => 'required|string',
+        'recommendation' => 'required|in:accept,reject,revision',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $evaluation = Evaluation::where('submission_id', $submissionId)
-            ->where('evaluator_id', auth()->id())
-            ->first();
-
-        if (!$evaluation) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not assigned to evaluate this submission'
-            ], 404);
-        }
-
-        if ($evaluation->is_completed) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have already completed the evaluation for this submission'
-            ], 409);
-        }
-
-        $evaluation->update([
-            'relevance_score' => $request->relevance_score,
-            'scientific_quality_score' => $request->scientific_quality_score,
-            'originality_score' => $request->originality_score,
-            'comments' => $request->comments,
-            'recommendation' => $request->recommendation,
-            'is_completed' => true,
-        ]);
-
+    if ($validator->fails()) {
         return response()->json([
-            'success' => true,
-            'message' => 'Submission evaluated successfully',
-            'data' => $evaluation->load(['evaluator:id,name,email', 'submission:id,title'])
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    // Optional: ensure submission exists (nice error instead of foreign key issues)
+    $submission = Submission::find($submissionId);
+    if (!$submission) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Submission not found'
+        ], 404);
+    }
+
+    $evaluation = Evaluation::where('submission_id', $submissionId)
+        ->where('evaluator_id', auth()->id())
+        ->first();
+
+    // ✅ NEW: auto-create evaluation if not assigned (committee only)
+    if (!$evaluation) {
+        if (!auth()->user()->hasRole('scientific_committee')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        $evaluation = Evaluation::create([
+            'submission_id' => $submissionId,
+            'evaluator_id' => auth()->id(),
+            'is_completed' => false,
         ]);
     }
+
+    if ($evaluation->is_completed) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You have already completed the evaluation for this submission'
+        ], 409);
+    }
+
+    $evaluation->update([
+        'relevance_score' => $request->relevance_score,
+        'scientific_quality_score' => $request->scientific_quality_score,
+        'originality_score' => $request->originality_score,
+        'comments' => $request->comments,
+        'recommendation' => $request->recommendation,
+        'is_completed' => true,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Submission evaluated successfully',
+        'data' => $evaluation->load(['evaluator:id,name,email', 'submission:id,title'])
+    ]);
+}
+
 
     /**
      * Get evaluations for a submission

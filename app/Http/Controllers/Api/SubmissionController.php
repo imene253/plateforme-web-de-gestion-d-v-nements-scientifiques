@@ -61,7 +61,7 @@ class SubmissionController extends Controller
             'event_id' => 'required|exists:events,id',
             'title' => 'required|string|max:255',
             'authors' => 'required|array|min:1',
-            // abstract is a Résumé 
+            // abstract is a Résumé
             'abstract' => 'required|string|min:100',
             'keywords' => 'required|array|min:3',
             'type' => 'required|in:oral,poster,affiche',
@@ -287,5 +287,36 @@ class SubmissionController extends Controller
             'message' => 'Submission status updated successfully',
             'data' => $submission->load(['event', 'author'])
         ]);
+    }
+
+    /**
+     * ✅ Download submission PDF (auth + role protected by routes)
+     */
+    public function downloadPdf($id)
+    {
+        $submission = Submission::find($id);
+
+        if (!$submission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Submission not found'
+            ], 404);
+        }
+
+        if (!$submission->pdf_file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No PDF file found for this submission'
+            ], 404);
+        }
+
+        if (!Storage::disk('public')->exists($submission->pdf_file)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'PDF file not found on server'
+            ], 404);
+        }
+
+        return Storage::disk('public')->download($submission->pdf_file);
     }
 }
